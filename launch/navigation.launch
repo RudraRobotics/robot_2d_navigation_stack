@@ -2,7 +2,7 @@
 <launch>
   <!-- Arguments -->
   <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
-  <arg name="map_file" default="$(find medicbot_navigation)/maps/map.yaml"/>
+  <arg name="map_file" default="$(find robot_2d_navigation_stack)/maps/map.yaml"/>
   <arg name="move_forward_only" default="false"/>
   <arg name="simulation" default="false"/>
   <arg name="depth" default="false"/>
@@ -17,13 +17,25 @@
 		  <include file="$(find realsense2_camera)/launch/rs_camera.launch">
 			  <param name="enable_pointcloud" value="true"/>
 		  </include>
-		  <include file="$(find medicbot_navigation)/launch/pointcloud_to_laserscan.launch"/>
-		
+		  <include file="$(find robot_2d_navigation_stack)/launch/pointcloud_to_laserscan.launch"/>
+		  <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
+		  <!-- move_base -->
+		  <include file="$(find robot_2d_navigation_stack)/launch/move_base.launch">
+		    <arg name="model" value="$(arg model)" />
+		    <arg name="move_forward_only" value="$(arg move_forward_only)"/>
+		    <arg name="scan_topic" value="depth_scan"/>
+		  </include>
 	  </group>
 	  <group unless="$(arg depth)">
 		  <include file="$(find medicbot_control)/launch/medicbot_diff_drive_controller.launch"/>
 		  <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
 		  <node pkg="usb_cam" type="usb_cam_node" name="usb_cam" output="log"/>
+		  <!-- move_base -->
+		  <include file="$(find robot_2d_navigation_stack)/launch/move_base.launch">
+		    <arg name="model" value="$(arg model)" />
+		    <arg name="move_forward_only" value="$(arg move_forward_only)"/>
+		    <arg name="scan_topic" value="scan"/>
+		  </include>
 	  </group>
   </group>
 
@@ -35,21 +47,15 @@
   <!-- Map server -->
   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
   <!-- AMCL -->
-  <include file="$(find medicbot_navigation)/launch/amcl.launch"/>
+  <include file="$(find robot_2d_navigation_stack)/launch/amcl.launch"/>
 
   <!-- Robot localization ekf node -->
   <!--include file="$(find medicbot_localization)/launch/medicbot_ekf.launch"/-->
 
-  <!-- move_base -->
-  <include file="$(find medicbot_navigation)/launch/move_base.launch">
-    <arg name="model" value="$(arg model)" />
-    <arg name="move_forward_only" value="$(arg move_forward_only)"/>
-  </include>
-
   <!-- rviz -->
   <group if="$(arg simulation)"> 
     <node pkg="rviz" type="rviz" name="rviz" required="true"
-          args="-d $(find medicbot_navigation)/rviz/medicbot_navigation.rviz"/>
+          args="-d $(find robot_2d_navigation_stack)/rviz/robot_2d_navigation_stack.rviz"/>
   </group>
 </launch>
 
