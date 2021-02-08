@@ -1,0 +1,6 @@
+<launch>
+  <node pkg="laser_filters" type="scan_to_scan_filter_chain" name="laser_filter">
+    <rosparam command="load" file="$(find medicbot_navigation)/param/rplidar_filter.yaml" />
+  </node>
+</launch>
+
